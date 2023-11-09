@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Player</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            margin-top: -5vh;
+            margin-bottom: -10vh;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            height: 100vh;
+        }
+        .bg{
+            background-image: url(https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            height: 105vh;
+        }
+        .dummy{
+            height: 10vh;
+        }
+        .title{
+            font-size: 45px;
+            font-weight: bolder;
+        }
+        .title:hover{
+            transform: scale(1.2);
+            font-style: italic;
+            transition: 1s ease-in-out;
+            color: rgb(0, 251, 255);
+
+        }
+        #audio-player {
+            width: 300px;
+            /* padding-top: 10vh!important; */
+            margin: 20px auto;
+            height: 80vh;
+            background-color: #f5f5f57d;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 40vw;
+            min-width: 30vw;
+            box-shadow: #000000 5px 5px 30px;
+        }
+
+        #audio-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        audio {
+            width: 85%;
+            margin: 10px 0;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+        }
+
+	audio:hover{
+            transform: scale(1.1);
+            font-style: italic;
+            transition: 0.75s ease-in-out;
+            box-shadow: #000000 5px 5px 3px;
+        }
+        
+        button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            
+        }
+        button:hover{
+            transform: scale(1.2);
+            transition-duration: 0.5s;
+            box-shadow: #000000 5px 5px 30px;
+        }
+
+        #play-pause-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #prev-btn, #next-btn {
+            background-color: #008CBA;
+            color: white;
+        }
+
+        #shuffle-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .song-list {
+            text-align: left;
+            margin-top: 20px;
+            height: 65vh;
+            overflow-y: scroll;
+            text-align: center;
+            display: grid;
+            width: 100%;
+            grid-template-columns: repeat(4,1fr);
+        }
+        
+        .song-item {
+            max-width: 100px;
+            cursor: pointer;
+            border: 2px solid #00000046 ;
+            border-radius: 10px;
+            margin: 10px;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            font-weight: bolder;
+        }
+        
+        .song-item:hover{
+            transform: scale(1.2);
+            font-style: italic;
+            transition: 0.75s ease-in-out;
+            box-shadow: #000000 5px 5px 3px;
+        }
+        
+        .playing{
+            background-color: rgb(0, 255, 255);
+            border: 3px solid black;
+        }
+
+        #help {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.57);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+        }
+        #help:hover{
+            transform: translateX(-1vh) scale(1.1);
+            transition: 0.5s ease-in-out;
+            box-shadow: #000000 5px 5px 30px;
+        }
+        
+	#cursor-stars {
+	  position: absolute;
+	  top: 0;
+	  left: 0;
+	  pointer-events: none;
+	}
+
+	  .star {
+	  position: absolute;
+	  width: 4px;
+	  height: 4px;
+	  background: #fff;
+	  border-radius: 50%;
+	  animation: sparkle 1s linear infinite;
+	}
+
+	@keyframes sparkle {
+	  0% {
+	    opacity: 0;
+	    transform: scale(0) translate(0, 0);
+	  }
+	  50% {
+	    opacity: 1;
+	    transform: scale(1) translate(5px, 0);
+	  }
+	  100% {
+	    opacity: 0;
+	    transform: scale(0) translate(0, 0);
+	  }
+	}
+
+
+    </style>
+</head>
+<body>
+	<div id="cursor-stars"></div>
+    <div class="bg">
+        <div class="dummy"></div>
+        <div class="title">Audio Player</div>
+        <div id="audio-player">
+            <audio id="audio" controls>
+                Your browser does not support the audio element.
+            </audio>
+            <div id="audio-controls">
+                <button id="prev-btn">Previous</button>
+                <button id="play-pause-btn">Play</button>
+            <button id="next-btn">Next</button>
+            <button id="shuffle-btn">Shuffle</button>
+        </div>
+        <div class="song-list" id="song-list">
+            <!-- Song list will be dynamically generated here -->
+        </div>
+        <div id="help">
+            <strong>Keyboard Shortcuts:</strong><br>
+            Space bar - Play/Pause<br>
+            Left Arrow - Skip song by 5 sec<br>
+            Right Arrow - Go backward by 5 sec<br>
+            UP Arrow - Increase Volume<br>
+            Down Arrow - Decrease Volume
+        </div>
+    </div>
+</div>
+    
+    <script>
+       const audio = document.getElementById('audio');
+        const playPauseButton = document.getElementById('play-pause-btn');
+        const prevButton = document.getElementById('prev-btn');
+        const nextButton = document.getElementById('next-btn');
+        const shuffleButton = document.getElementById('shuffle-btn');
+        const songList = document.getElementById('song-list');
+        let currentSongIndex = 0;
+        let isShuffleOn = false;
+        let audioCurrentTime = 0;
+
+        const audioFiles = Array.from({ length: 48}, (_, i) => `static/song${i + 1}.mp3`);
+
+
+        function playAudio() {
+            audio.src = audioFiles[currentSongIndex];
+            audio.currentTime = audioCurrentTime; // Set the playback time to where it was paused
+            const cur=songList.getElementsByClassName(`song${currentSongIndex}`);
+            cur[0].classList.add("playing")
+            audio.play();
+            playPauseButton.textContent = 'Pause';
+        }
+
+        function pauseAudio() {
+            audioCurrentTime = audio.currentTime; // Store the current playback time
+            audio.pause();
+            playPauseButton.textContent = 'Play';
+        }
+
+        function playNextSong() {
+            const prev=songList.getElementsByClassName(`song${currentSongIndex}`);
+            prev[0].classList.remove("playing")
+            currentSongIndex = (currentSongIndex + 1) % audioFiles.length;
+            const cur=songList.getElementsByClassName(`song${currentSongIndex}`);
+            cur[0].classList.add("playing")
+            audioCurrentTime = 0; // Reset the playback time for the next song
+            playAudio();
+        }
+
+        function playPreviousSong() {
+            const prev=songList.getElementsByClassName(`song${currentSongIndex}`);
+            prev[0].classList.remove("playing")
+            currentSongIndex = (currentSongIndex - 1 + audioFiles.length) % audioFiles.length;
+            const cur=songList.getElementsByClassName(`song${currentSongIndex}`);
+            cur[0].classList.add("playing")
+            audioCurrentTime = 0; // Reset the playback time for the previous song
+            playAudio();
+        }
+
+        function toggleShuffle() {
+            isShuffleOn = !isShuffleOn;
+            shuffleButton.textContent = isShuffleOn ? 'Shuffle On' : 'Shuffle Off';
+        }
+
+        function updateSongList() {
+            songList.innerHTML = '';
+
+            audioFiles.forEach((song, index) => {
+                const songItem = document.createElement('div');
+                songItem.classList.add('song-item');
+                songItem.textContent = `Song ${index + 1}`;
+                songItem.classList.add(`song${index}`);
+                songItem.addEventListener('click', () => {
+                    const prev=songList.getElementsByClassName(`song${currentSongIndex}`);
+                    prev[0].classList.remove("playing")
+                    currentSongIndex = index;
+                    const cur=songList.getElementsByClassName(`song${currentSongIndex}`);
+                    cur[0].classList.add("playing")
+                    playAudio();
+                });
+                songList.appendChild(songItem);
+            });
+        }
+
+        // Event listener for the "ended" event to play the next song
+        audio.addEventListener('ended', () => {
+            if (!isShuffleOn) {
+                playNextSong();
+            } else {
+                const prev=songList.getElementsByClassName(`song${currentSongIndex}`);
+                prev[0].classList.remove("playing")
+                currentSongIndex = Math.floor(Math.random() * audioFiles.length);
+                const cur=songList.getElementsByClassName(`song${currentSongIndex}`);
+                cur[0].classList.add("playing")
+                audioCurrentTime = 0; // Reset the playback time for the next shuffled song
+                playAudio();
+            }
+        });
+
+        playPauseButton.addEventListener('click', () => {
+            if (audio.paused) {
+                playAudio();
+            } else {
+                pauseAudio();
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (isShuffleOn) {
+                const prev=songList.getElementsByClassName(`song${currentSongIndex}`);
+                prev[0].classList.remove("playing")
+                currentSongIndex = Math.floor(Math.random() * audioFiles.length);
+                const cur=songList.getElementsByClassName(`song${currentSongIndex}`);
+                cur[0].classList.add("playing")
+                audioCurrentTime = 0; // Reset the playback time for the next shuffled song
+                playAudio();
+            } else {
+                playNextSong();
+            }
+        });
+
+        prevButton.addEventListener('click', () => {
+            if (isShuffleOn) {
+                const prev=songList.getElementsByClassName(`song${currentSongIndex}`);
+                prev[0].classList.remove("playing")
+                currentSongIndex = Math.floor(Math.random() * audioFiles.length);
+                const cur=songList.getElementsByClassName(`song${currentSongIndex}`);
+                cur[0].classList.add("playing")
+                audioCurrentTime = 0; // Reset the playback time for the previous shuffled song
+                playAudio();
+            } else {
+                playPreviousSong();
+            }
+        });
+
+        shuffleButton.addEventListener('click', () => {
+            toggleShuffle();
+        });
+
+        updateSongList();
+        playAudio();
+	const cursorStars = document.getElementById('cursor-stars');
+
+	document.addEventListener('mousemove', (e) => {
+	  const star = document.createElement('div');
+	  star.classList.add('star');
+	  star.style.left = e.pageX + 'px';
+	  star.style.top = e.pageY + 'px';
+	  cursorStars.appendChild(star);
+
+	  // Remove the star element after the animation is complete
+	  star.addEventListener('animationiteration', () => {
+	    cursorStars.removeChild(star);
+	  });
+	});
+
+    </script>
+</body>
+</html>
+
